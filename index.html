@@ -9,13 +9,17 @@
 <body>
     <div id="app">
         <header>
-            <h1>TaskMaster</h1>
+  <div class="logo-container">
+    <img src="logo.png" alt="TaskMaster Logo" class="logo">
+
+  </div>
+  <!-- rest of header buttons -->
             <div id="user-info">
                 <button id="login-btn">Login with Google</button>
-                <div id="user-profile" style="display: none;">̥
-                    <img id="user-avatar" src="" alt="Avatar">̥
+                <div id="user-profile" style="display: none;">
+                    <img id="user-avatar" src="" alt="Avatar">
                     <span id="user-name"></span>
-                    <button id="profile-btn">Profile</button>̥
+                    <button id="profile-btn">Profile</button>
                     <button id="logout-btn">Logout</button>
                 </div>
             </div>
@@ -24,6 +28,13 @@
                 <button id="lang-hi">हिंदी</button>
                 <button id="lang-te">తెలుగు</button>
             </div>
+            <button id="theme-toggle-btn">🌙 Dark Mode</button>
+            <div class="filters">
+  <button onclick="setFilter('all')">All</button>
+  <button onclick="setFilter('pending')">Pending</button>
+  <button onclick="setFilter('completed')">Completed</button>
+</div>
+
         </header>
         <main>
             <section id="tasks">
@@ -31,6 +42,10 @@
                 <input type="text" id="task-input" placeholder="Add a new task" data-lang="add-task">
                 <button id="add-task-btn" data-lang="add">Add</button>
                 <ul id="task-list"></ul>
+                <button id="clear-tasks-btn" class="clear-btn">
+                 Clear All Tasks
+                </button>
+
             </section>
             <section id="ai-recommendations">
                 <h2 data-lang="ai-recommendations">AI Recommendations</h2>
@@ -50,6 +65,14 @@
             <button onclick="closeProfile()">Close</button>
         </div>
     </div>
-    <script src="script.js"></script>
+    <!-- Firebase core -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+
+<!-- Firebase authentication -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<!-- Your main JS -->
+<script src="script.js"></script>
+
 </body>
 </html>

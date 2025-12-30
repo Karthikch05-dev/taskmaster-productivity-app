@@ -9,6 +9,29 @@ body {
     scroll-behavior: smooth;
     position: relative;
 }
+.brand {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 42px;      /* perfect header size */
+    width: auto;
+    cursor: pointer;
+}
+.brand {
+    text-decoration: none;
+}
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 42px;        /* perfect navbar size */
+  width: auto;
+  object-fit: contain;
+}
 
 body::before {
     content: '';
@@ -169,8 +192,20 @@ button:active {
     list-style-type: none;
     padding: 0;
 }
+.clear-btn {
+    margin-top: 1rem;
+    width: 100%;
+    background: rgba(255, 69, 58, 0.85);
+    color: white;
+    font-weight: 600;
+}
+
+.clear-btn:hover {
+    background: rgba(255, 69, 58, 1);
+}
 
 #task-list li {
+    font-weight:600;
     display: flex;
     justify-content: space-between;
     align-items: center;

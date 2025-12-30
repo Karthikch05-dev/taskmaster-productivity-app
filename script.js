@@ -1,4 +1,30 @@
 // Language translations
+//let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyC7gJx76Q56t-Cct0A6gL0TqDtjjjVV9Ws",
+  authDomain: "taskmaster-78abb.firebaseapp.com",
+  projectId: "taskmaster-78abb",
+  storageBucket: "taskmaster-78abb.firebasestorage.app",
+  messagingSenderId: "888153206728",
+  appId: "1:888153206728:web:b2144b25caf89773f49afd"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+/* 👇 PASTE STEP 4 HERE 👇 */
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = {
+            name: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL
+        };
+        updateUserUI();
+    }
+});
+
 const translations = {
     en: {
         tasks: 'Tasks',
@@ -32,6 +58,13 @@ const translations = {
 let currentLanguage = 'en';
 let tasks = [];
 let currentUser = null;
+let currentFilter = 'all';
+
+function setFilter(filter) {
+    currentFilter = filter;
+    renderTasks();
+}
+
 
 // Language management
 function setLanguage(lang) {
@@ -69,31 +102,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event listeners
 function attachEventListeners() {
+    console.log("attachEventListeners called");
+
+    const loginBtn = document.getElementById('login-btn');
+    console.log("loginBtn =", loginBtn);
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', loginWithGoogle);
+        console.log("login button listener attached");
+    } else {
+        console.log("login button NOT FOUND");
+    }
+
     const addTaskBtn = document.getElementById('add-task-btn');
     const taskInput = document.getElementById('task-input');
     const getAiBtn = document.getElementById('get-ai-btn');
-    const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const profileBtn = document.getElementById('profile-btn');
     const saveProfileBtn = document.getElementById('save-profile-btn');
     const themeSelector = document.getElementById('theme-selector');
-    
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const clearTasksBtn = document.getElementById('clear-tasks-btn');
+
+    if (clearTasksBtn) {
+        clearTasksBtn.addEventListener('click', clearAllTasks);
+    }
+
     if (addTaskBtn) addTaskBtn.addEventListener('click', addTask);
     if (taskInput) taskInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addTask();
     });
     if (getAiBtn) getAiBtn.addEventListener('click', getAIRecommendations);
-    if (loginBtn) loginBtn.addEventListener('click', loginWithGoogle);
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
     if (profileBtn) profileBtn.addEventListener('click', openProfile);
     if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
     if (themeSelector) themeSelector.addEventListener('change', changeTheme);
-    
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+
     // Language buttons
     const langEn = document.getElementById('lang-en');
     const langHi = document.getElementById('lang-hi');
     const langTe = document.getElementById('lang-te');
-    
+
     if (langEn) langEn.addEventListener('click', () => setLanguage('en'));
     if (langHi) langHi.addEventListener('click', () => setLanguage('hi'));
     if (langTe) langTe.addEventListener('click', () => setLanguage('te'));
@@ -127,7 +177,19 @@ function deleteTask(id) {
     saveTasks();
     renderTasks();
 }
+function clearAllTasks() {
+    if (tasks.length === 0) {
+        alert('No tasks to clear');
+        return;
+    }
 
+    const confirmClear = confirm('Are you sure you want to delete all tasks?');
+    if (!confirmClear) return;
+
+    tasks = [];
+    saveTasks();
+    renderTasks();
+}
 function toggleTask(id) {
     const task = tasks.find(task => task.id === id);
     if (task) {
@@ -136,24 +198,33 @@ function toggleTask(id) {
         renderTasks();
     }
 }
-
 function renderTasks() {
     const taskList = document.getElementById('task-list');
     if (!taskList) return;
-    
+
     taskList.innerHTML = '';
-    
-    tasks.forEach(task => {
-        const li = document.createElement('li');
-        li.className = task.completed ? 'completed' : '';
-        li.innerHTML = `
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
-            <span>${task.text}</span>
-            <button onclick="deleteTask(${task.id})">Delete</button>
-        `;
-        taskList.appendChild(li);
-    });
+
+    tasks
+        .filter(task => {
+            if (currentFilter === 'completed') return task.completed;
+            if (currentFilter === 'pending') return !task.completed;
+            return true;
+        })
+        .forEach(task => {
+            const li = document.createElement('li');
+            li.className = task.completed ? 'completed' : '';
+
+            li.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                       onchange="toggleTask(${task.id})">
+                <span class="task-text">${task.text}</span>
+                <button onclick="deleteTask(${task.id})">Delete</button>
+            `;
+
+            taskList.appendChild(li);
+        });
 }
+
 
 function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -220,39 +291,62 @@ function changeTheme(e) {
 
 function applyTheme(theme) {
     const body = document.body;
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
     if (theme === 'dark') {
         body.classList.add('dark');
+        if (themeToggleBtn) themeToggleBtn.textContent = '☀️ Light Mode';
     } else {
         body.classList.remove('dark');
+        if (themeToggleBtn) themeToggleBtn.textContent = '🌙 Dark Mode';
     }
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    profile.theme = newTheme;
+    localStorage.setItem('userProfile', JSON.stringify(profile));
 }
 
 // Profile modal
 function openProfile() {
     const modal = document.getElementById('profile-modal');
-    if (modal) modal.style.display = 'block';
+    if (modal) {
+        modal.style.display = 'block';
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
 }
 
 function closeProfile() {
     const modal = document.getElementById('profile-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 400);
+    }
 }
 
-// Authentication (mock)
+// Authentication
 function loginWithGoogle() {
-    currentUser = {
-        name: 'User',
-        email: 'user@example.com',
-        photoURL: 'https://via.placeholder.com/40'
-    };
-    updateUserUI();
+    console.log("Login function called");
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
+    auth.signInWithPopup(provider).then((result) => {
+        console.log("Login successful:", result.user);
+    }).catch((error) => {
+        console.error("Login error:", error);
+        alert("Login failed: " + error.message);
+    });
 }
 
 function logout() {
-    currentUser = null;
-    updateUserUI();
+    auth.signOut().then(() => {
+        currentUser = null;
+        updateUserUI();
+    });
 }
-
 function updateUserUI() {
     const loginBtn = document.getElementById('login-btn');
     const userProfile = document.getElementById('user-profile');
